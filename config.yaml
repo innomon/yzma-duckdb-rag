@@ -1,0 +1,32 @@
+# YDRAG Configuration
+# Environment variables override these values (prefixed with YDRAG_)
+
+# Path to embedding model file (GGUF format)
+# Env: YDRAG_MODEL
+model: ""
+
+# Path to llama.cpp library
+# Env: YZMA_LIB
+lib_path: ""
+
+# Path to DuckDB database file (use :memory: for in-memory)
+# Env: YDRAG_DB_PATH
+db_path: "rag.db"
+
+# Context size for embeddings
+# Env: YDRAG_CONTEXT_SIZE
+context_size: 512
+
+# Batch size for processing
+# Env: YDRAG_BATCH_SIZE
+batch_size: 512
+
+# Enable verbose logging
+# Env: YDRAG_VERBOSE
+verbose: false
+
+# Server settings
+server:
+  # Port for MCP server
+  # Env: YDRAG_SERVER_PORT
+  port: "8080"

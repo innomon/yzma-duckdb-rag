@@ -30,7 +30,7 @@ func NewRAGSystem(modelPath, libPath, dbPath string) (*RAGSystem, error) {
 		return nil, fmt.Errorf("unable to load llama library: %w", err)
 	}
 
-	if !*verbose {
+	if cfg != nil && !cfg.Verbose {
 		llama.LogSet(llama.LogSilent())
 	}
 	llama.Init()
@@ -44,8 +44,10 @@ func NewRAGSystem(modelPath, libPath, dbPath string) (*RAGSystem, error) {
 	}
 
 	ctxParams := llama.ContextDefaultParams()
-	ctxParams.NCtx = uint32(*contextSize)
-	ctxParams.NBatch = uint32(*batchSize)
+	if cfg != nil {
+		ctxParams.NCtx = uint32(cfg.ContextSize)
+		ctxParams.NBatch = uint32(cfg.BatchSize)
+	}
 	ctxParams.PoolingType = llama.PoolingTypeMean
 	ctxParams.Embeddings = 1
 

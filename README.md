@@ -107,12 +107,46 @@ Add to your MCP client configuration (e.g., Claude Desktop):
 }
 ```
 
-## Options
+## Configuration
+
+YDRAG supports configuration via YAML file, environment variables, and command-line flags.
+
+**Priority order**: flags > environment variables > config.yaml > defaults
+
+### Configuration File
+
+Create a `config.yaml` in the working directory:
+
+```yaml
+model: "./models/nomic-embed-text-v1.5.Q8_0.gguf"
+lib_path: "/path/to/libllama.so"
+db_path: "rag.db"
+context_size: 512
+batch_size: 512
+verbose: false
+server:
+  port: "8080"
+```
+
+### Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `YDRAG_MODEL` | Path to GGUF embedding model | - |
+| `YZMA_LIB` | Path to llama.cpp library | - |
+| `YDRAG_DB_PATH` | Path to DuckDB database file | `rag.db` |
+| `YDRAG_CONTEXT_SIZE` | Context size for embeddings | 512 |
+| `YDRAG_BATCH_SIZE` | Batch size for processing | 512 |
+| `YDRAG_VERBOSE` | Enable verbose logging (`true`/`1`) | false |
+| `YDRAG_SERVER_PORT` | MCP server port | 8080 |
+
+### Command-Line Flags
 
 | Flag | Description | Default |
 |------|-------------|---------|
-| `-model` | Path to GGUF embedding model (required) | - |
-| `-lib` | Path to llama.cpp library | `$YZMA_LIB` |
+| `-config` | Path to configuration file | `config.yaml` |
+| `-model` | Path to GGUF embedding model | - |
+| `-lib` | Path to llama.cpp library | - |
 | `-db` | Path to DuckDB database file | `rag.db` |
 | `-context` | Context size for embeddings | 512 |
 | `-batch` | Batch size for processing | 512 |

@@ -7,6 +7,8 @@ require (
 	github.com/marcboeker/go-duckdb/v2 v2.1.0
 )
 
+require gopkg.in/yaml.v3 v3.0.1 // indirect
+
 require (
 	github.com/google/jsonschema-go v0.3.0 // indirect
 	github.com/modelcontextprotocol/go-sdk v1.2.0
