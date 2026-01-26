@@ -10,6 +10,7 @@ A Retrieval-Augmented Generation (RAG) system implemented in Go using:
 - Vector similarity search using DuckDB's `array_cosine_similarity`
 - Persistent storage of documents and embeddings
 - Simple CLI interface for document management and querying
+- **MCP Server** for integration with AI assistants (Claude, etc.)
 
 ## Prerequisites
 
@@ -77,6 +78,35 @@ Top 5 results for: "What is the capital of France?"
 ./ydrag -model ./models/nomic-embed-text-v1.5.Q8_0.gguf delete doc1
 ```
 
+### MCP Server Mode
+
+Run as an MCP (Model Context Protocol) server for integration with AI assistants:
+
+```bash
+./ydrag -model ./models/nomic-embed-text-v1.5.Q8_0.gguf serve
+```
+
+The server exposes the following tools via stdio transport:
+- `add_document` - Add a document to the knowledge base
+- `query_documents` - Search for similar documents
+- `list_documents` - List all documents
+- `delete_document` - Delete a document
+
+#### MCP Client Configuration
+
+Add to your MCP client configuration (e.g., Claude Desktop):
+
+```json
+{
+  "mcpServers": {
+    "ydrag": {
+      "command": "/path/to/ydrag",
+      "args": ["-model", "/path/to/model.gguf", "serve"]
+    }
+  }
+}
+```
+
 ## Options
 
 | Flag | Description | Default |
@@ -92,8 +122,17 @@ Top 5 results for: "What is the capital of France?"
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                      YDRAG CLI                          │
+│                      YDRAG                              │
 ├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  │
+│  │     CLI      │  │  MCP Server  │  │   RAG Core   │  │
+│  │              │  │   (stdio)    │  │              │  │
+│  │  add/query/  │  │              │  │  • Embed     │  │
+│  │  list/delete │  │  4 tools     │  │  • Store     │  │
+│  └──────┬───────┘  └──────┬───────┘  │  • Search    │  │
+│         │                 │          └──────┬───────┘  │
+│         └─────────────────┴─────────────────┘          │
 │                                                         │
 │  ┌─────────────────┐         ┌─────────────────────┐   │
 │  │  YZMA/llama.cpp │         │      DuckDB         │   │
@@ -102,7 +141,6 @@ Top 5 results for: "What is the capital of France?"
 │  │  • Tokenize     │         │  • Store embeddings │   │
 │  │  • Embed text   │         │  • Vector search    │   │
 │  └────────┬────────┘         └──────────┬──────────┘   │
-│           │                             │              │
 │           │      []float32              │              │
 │           └─────────────────────────────┘              │
 │                                                         │
@@ -115,6 +153,15 @@ Top 5 results for: "What is the capital of France?"
 2. **Storage**: Documents and their embeddings are stored in DuckDB using the `FLOAT[]` array type
 3. **Query**: The query text is embedded, then DuckDB's `array_cosine_similarity` function finds the most similar documents
 4. **Retrieval**: Results are returned sorted by similarity score
+
+## MCP Tools Reference
+
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `add_document` | Add a document to the knowledge base | `id` (string), `content` (string) |
+| `query_documents` | Search for similar documents | `query` (string), `top_k` (int, optional) |
+| `list_documents` | List all documents | none |
+| `delete_document` | Delete a document | `id` (string) |
 
 ## License
 
