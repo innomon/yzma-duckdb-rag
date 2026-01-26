@@ -42,6 +42,8 @@ github.com/klauspost/compress v1.17.11 h1:In6xLpyWOi1+C7tXUUWv2ot1QvBjxevKAaI6IX
 github.com/klauspost/compress v1.17.11/go.mod h1:pMDklpSncoRMuLFrf1W9Ss9KT+0rH90U12bZKk7uwG0=
 github.com/klauspost/cpuid/v2 v2.2.9 h1:66ze0taIn2H33fBvCkXuv9BmCwDfafmiIVpKV9kKGuY=
 github.com/klauspost/cpuid/v2 v2.2.9/go.mod h1:rqkxqrZ1EhYM9G+hXH7YdowN5R5RGN6NK4QwQ3WMXF8=
+github.com/ledongthuc/pdf v0.0.0-20250511090121-5959a4027728 h1:QwWKgMY28TAXaDl+ExRDqGQltzXqN/xypdKP86niVn8=
+github.com/ledongthuc/pdf v0.0.0-20250511090121-5959a4027728/go.mod h1:1fEHWurg7pvf5SG6XNE5Q8UZmOwex51Mkx3SLhrW5B4=
 github.com/marcboeker/go-duckdb/arrowmapping v0.0.6 h1:FaNX2JP4pKw7Xh2rMBCCvqWIafhX3nSXrUffexNRB68=
 github.com/marcboeker/go-duckdb/arrowmapping v0.0.6/go.mod h1:WjLM334CLZux/OtAeF0DT2n9LyNqquqT3EhCHQcflNk=
 github.com/marcboeker/go-duckdb/mapping v0.0.6 h1:Y+nHQDHXqo78i8MM4UP7qVmFgTAofbdvpUdRdxJXjSk=

@@ -23,6 +23,7 @@ require (
 	github.com/jupiterrider/ffi v0.5.1 // indirect
 	github.com/klauspost/compress v1.17.11 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.9 // indirect
+	github.com/ledongthuc/pdf v0.0.0-20250511090121-5959a4027728
 	github.com/marcboeker/go-duckdb/arrowmapping v0.0.6 // indirect
 	github.com/marcboeker/go-duckdb/mapping v0.0.6 // indirect
 	github.com/pierrec/lz4/v4 v4.1.22 // indirect
