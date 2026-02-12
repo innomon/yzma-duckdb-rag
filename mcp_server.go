@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"os"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
@@ -223,6 +225,39 @@ func (m *MCPServer) deleteDocument(ctx context.Context, req *mcp.CallToolRequest
 	}, DeleteDocumentResult{Success: true, Message: fmt.Sprintf("Document '%s' deleted successfully", args.ID)}, nil
 }
 
-func (m *MCPServer) Run(ctx context.Context) error {
-	return m.server.Run(ctx, &mcp.StdioTransport{})
+func (m *MCPServer) Run(ctx context.Context, transport, addr string) error {
+	switch transport {
+	case "stdio", "":
+		return m.server.Run(ctx, &mcp.StdioTransport{})
+	case "sse":
+		handler := mcp.NewSSEHandler(func(r *http.Request) *mcp.Server {
+			return m.server
+		}, nil)
+		fmt.Fprintf(os.Stderr, "MCP SSE server listening on %s\n", addr)
+		srv := &http.Server{Addr: addr, Handler: handler}
+		go func() {
+			<-ctx.Done()
+			srv.Close()
+		}()
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			return err
+		}
+		return nil
+	case "streamable-http":
+		handler := mcp.NewStreamableHTTPHandler(func(r *http.Request) *mcp.Server {
+			return m.server
+		}, nil)
+		fmt.Fprintf(os.Stderr, "MCP Streamable HTTP server listening on %s\n", addr)
+		srv := &http.Server{Addr: addr, Handler: handler}
+		go func() {
+			<-ctx.Done()
+			srv.Close()
+		}()
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			return err
+		}
+		return nil
+	default:
+		return fmt.Errorf("unsupported transport: %q (use stdio, sse, or streamable-http)", transport)
+	}
 }

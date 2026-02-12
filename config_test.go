@@ -30,6 +30,9 @@ func TestDefaultConfig(t *testing.T) {
 	if cfg.Server.Port != "8080" {
 		t.Errorf("Server.Port = %q, want %q", cfg.Server.Port, "8080")
 	}
+	if cfg.Server.Transport != "stdio" {
+		t.Errorf("Server.Transport = %q, want %q", cfg.Server.Transport, "stdio")
+	}
 }
 
 func TestLoadConfig_NonExistentFile(t *testing.T) {
@@ -54,6 +57,7 @@ batch_size: 256
 verbose: true
 server:
   port: "9090"
+  transport: "sse"
 `)
 	tmpFile := filepath.Join(t.TempDir(), "config.yaml")
 	if err := os.WriteFile(tmpFile, yamlContent, 0644); err != nil {
@@ -84,6 +88,9 @@ server:
 	}
 	if cfg.Server.Port != "9090" {
 		t.Errorf("Server.Port = %q, want %q", cfg.Server.Port, "9090")
+	}
+	if cfg.Server.Transport != "sse" {
+		t.Errorf("Server.Transport = %q, want %q", cfg.Server.Transport, "sse")
 	}
 }
 
@@ -120,6 +127,7 @@ func TestApplyEnvOverrides(t *testing.T) {
 	t.Setenv("YDRAG_BATCH_SIZE", "128")
 	t.Setenv("YDRAG_VERBOSE", "true")
 	t.Setenv("YDRAG_SERVER_PORT", "3000")
+	t.Setenv("YDRAG_TRANSPORT", "streamable-http")
 
 	cfg := DefaultConfig()
 	cfg.applyEnvOverrides()
@@ -144,6 +152,9 @@ func TestApplyEnvOverrides(t *testing.T) {
 	}
 	if cfg.Server.Port != "3000" {
 		t.Errorf("Server.Port = %q, want %q", cfg.Server.Port, "3000")
+	}
+	if cfg.Server.Transport != "streamable-http" {
+		t.Errorf("Server.Transport = %q, want %q", cfg.Server.Transport, "streamable-http")
 	}
 }
 

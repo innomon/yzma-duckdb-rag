@@ -12,7 +12,7 @@ A Retrieval-Augmented Generation (RAG) system implemented in Go using:
 - Persistent storage of documents and embeddings
 - PDF text extraction for document ingestion
 - Simple CLI interface for document management and querying
-- MCP server (stdio transport) for integration with AI assistants (Claude, Amp, etc.)
+- MCP server with configurable transport (stdio, SSE, Streamable HTTP) for integration with AI assistants (Claude, Amp, etc.)
 - Flexible configuration via YAML, environment variables, and CLI flags
 
 ## Prerequisites
@@ -109,13 +109,29 @@ Top 5 results for: "What is the capital of France?"
 
 ### MCP Server Mode
 
-Run as an MCP (Model Context Protocol) server for integration with AI assistants:
+Run as an MCP (Model Context Protocol) server for integration with AI assistants.
+The transport is configurable: **stdio** (default), **sse**, or **streamable-http**.
 
 ```bash
+# Default: stdio transport
 ./ydrag -model ./models/nomic-embed-text-v1.5.Q8_0.gguf serve
+
+# SSE transport (listens on port 8080)
+YDRAG_TRANSPORT=sse ./ydrag -model ./models/nomic-embed-text-v1.5.Q8_0.gguf serve
+
+# Streamable HTTP transport (listens on port 8080)
+YDRAG_TRANSPORT=streamable-http ./ydrag -model ./models/nomic-embed-text-v1.5.Q8_0.gguf serve
 ```
 
-The server exposes the following tools via stdio transport:
+Or set the transport in `config.yaml`:
+
+```yaml
+server:
+  transport: "sse"       # "stdio" | "sse" | "streamable-http"
+  port: "8080"
+```
+
+The server exposes the following tools:
 - `add_document` — Add a document to the knowledge base
 - `query_documents` — Search for similar documents
 - `list_documents` — List all documents
@@ -123,7 +139,7 @@ The server exposes the following tools via stdio transport:
 
 #### MCP Client Configuration
 
-Add to your MCP client configuration (e.g., Claude Desktop):
+**stdio transport** — add to your MCP client config (e.g., Claude Desktop):
 
 ```json
 {
@@ -131,6 +147,18 @@ Add to your MCP client configuration (e.g., Claude Desktop):
     "ydrag": {
       "command": "/path/to/ydrag",
       "args": ["-model", "/path/to/model.gguf", "serve"]
+    }
+  }
+}
+```
+
+**SSE / Streamable HTTP transport** — point your MCP client at the URL:
+
+```json
+{
+  "mcpServers": {
+    "ydrag": {
+      "url": "http://localhost:8080/mcp"
     }
   }
 }
@@ -154,6 +182,7 @@ context_size: 512
 batch_size: 512
 verbose: false
 server:
+  transport: "stdio"
   port: "8080"
 ```
 
@@ -167,6 +196,7 @@ server:
 | `YDRAG_CONTEXT_SIZE` | Context size for embeddings | `512` |
 | `YDRAG_BATCH_SIZE` | Batch size for processing | `512` |
 | `YDRAG_VERBOSE` | Enable verbose logging (`true`/`1`) | `false` |
+| `YDRAG_TRANSPORT` | MCP transport type (stdio, sse, streamable-http) | `stdio` |
 | `YDRAG_SERVER_PORT` | MCP server port | `8080` |
 
 ### Command-Line Flags
@@ -213,7 +243,7 @@ server:
 │                                                         │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  │
 │  │     CLI      │  │  MCP Server  │  │   RAG Core   │  │
-│  │              │  │   (stdio)    │  │              │  │
+│  │              │  │(stdio/sse/http)│ │              │  │
 │  │  add/query/  │  │              │  │  • Embed     │  │
 │  │  list/delete │  │  4 tools     │  │  • Store     │  │
 │  └──────┬───────┘  └──────┬───────┘  │  • Search    │  │

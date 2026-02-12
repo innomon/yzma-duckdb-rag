@@ -19,11 +19,11 @@ func (c *ServeCommand) Name() string {
 }
 
 func (c *ServeCommand) Description() string {
-	return "Start the MCP server (stdio transport)"
+	return "Start the MCP server (supports stdio, sse, streamable-http transports)"
 }
 
 func (c *ServeCommand) Usage() string {
-	return "serve"
+	return "serve [--transport stdio|sse|streamable-http] [--port PORT]"
 }
 
 func (c *ServeCommand) Run(rag *RAGSystem, args []string) error {
@@ -39,11 +39,14 @@ func (c *ServeCommand) Run(rag *RAGSystem, args []string) error {
 
 	server := NewMCPServer(rag)
 
+	transport := cfg.Server.Transport
+	addr := ":" + cfg.Server.Port
+
 	if *verbose {
-		fmt.Fprintln(os.Stderr, "Starting MCP server on stdio...")
+		fmt.Fprintf(os.Stderr, "Starting MCP server (transport=%s)...\n", transport)
 	}
 
-	if err := server.Run(ctx); err != nil {
+	if err := server.Run(ctx, transport, addr); err != nil {
 		return fmt.Errorf("MCP server error: %w", err)
 	}
 

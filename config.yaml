@@ -27,6 +27,10 @@ verbose: false
 
 # Server settings
 server:
-  # Port for MCP server
+  # Port for MCP server (used by sse and streamable-http transports)
   # Env: YDRAG_SERVER_PORT
   port: "8080"
+
+  # Transport type: "stdio", "sse", or "streamable-http"
+  # Env: YDRAG_TRANSPORT
+  transport: "stdio"

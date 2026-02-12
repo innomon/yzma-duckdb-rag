@@ -14,8 +14,9 @@ type Config struct {
 	ContextSize int    `yaml:"context_size"`
 	BatchSize   int    `yaml:"batch_size"`
 	Verbose     bool   `yaml:"verbose"`
-	Server      struct {
-		Port string `yaml:"port"`
+	Server struct {
+		Port      string `yaml:"port"`
+		Transport string `yaml:"transport"` // "stdio", "sse", or "streamable-http"
 	} `yaml:"server"`
 }
 
@@ -28,8 +29,9 @@ func DefaultConfig() *Config {
 		BatchSize:   512,
 		Verbose:     false,
 		Server: struct {
-			Port string `yaml:"port"`
-		}{Port: "8080"},
+			Port      string `yaml:"port"`
+			Transport string `yaml:"transport"`
+		}{Port: "8080", Transport: "stdio"},
 	}
 }
 
@@ -73,5 +75,8 @@ func (c *Config) applyEnvOverrides() {
 	}
 	if v := os.Getenv("YDRAG_SERVER_PORT"); v != "" {
 		c.Server.Port = v
+	}
+	if v := os.Getenv("YDRAG_TRANSPORT"); v != "" {
+		c.Server.Transport = v
 	}
 }
