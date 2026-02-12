@@ -7,6 +7,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// Config holds the application configuration for the RAG service, including
+// model settings, database paths, and server options.
 type Config struct {
 	Model       string `yaml:"model"`
 	LibPath     string `yaml:"lib_path"`
@@ -20,6 +22,7 @@ type Config struct {
 	} `yaml:"server"`
 }
 
+// DefaultConfig returns a Config populated with sensible default values.
 func DefaultConfig() *Config {
 	return &Config{
 		Model:       "",
@@ -35,6 +38,8 @@ func DefaultConfig() *Config {
 	}
 }
 
+// LoadConfig reads a YAML configuration file from path, merges it with the
+// defaults, and applies any environment variable overrides.
 func LoadConfig(path string) (*Config, error) {
 	cfg := DefaultConfig()
 
@@ -50,6 +55,8 @@ func LoadConfig(path string) (*Config, error) {
 	return cfg, nil
 }
 
+// applyEnvOverrides overrides Config fields with values from YDRAG_*
+// environment variables when they are set.
 func (c *Config) applyEnvOverrides() {
 	if v := os.Getenv("YDRAG_MODEL"); v != "" {
 		c.Model = v

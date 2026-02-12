@@ -6,6 +6,8 @@ import (
 	"os"
 )
 
+// configPath, modelFile, libPath, dbPath, contextSize, batchSize, and verbose
+// are command-line flags that override values loaded from the configuration file.
 var (
 	configPath  = flag.String("config", "config.yaml", "path to configuration file")
 	modelFile   = flag.String("model", "", "path to embedding model file (GGUF format)")
@@ -16,8 +18,12 @@ var (
 	verbose     = flag.Bool("verbose", false, "enable verbose logging")
 )
 
+// cfg holds the active configuration used throughout the application.
 var cfg *Config
 
+// main is the entry point for the ydrag CLI. It parses flags, loads
+// configuration, initialises the RAG system, and dispatches the requested
+// sub-command.
 func main() {
 	flag.Parse()
 
@@ -62,6 +68,8 @@ func main() {
 	}
 }
 
+// applyFlagOverrides overwrites fields in cfg with any non-zero values
+// supplied via command-line flags.
 func applyFlagOverrides(cfg *Config) {
 	if *modelFile != "" {
 		cfg.Model = *modelFile
@@ -83,6 +91,8 @@ func applyFlagOverrides(cfg *Config) {
 	}
 }
 
+// showUsage prints the full CLI usage message, including available commands,
+// flag descriptions, configuration priority, and example invocations.
 func showUsage() {
 	fmt.Println("Usage: ydrag [options] <command> [args]")
 	PrintCommandsHelp()

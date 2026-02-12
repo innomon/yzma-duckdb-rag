@@ -11,12 +11,14 @@ import (
 	"github.com/hybridgroup/yzma/pkg/llama"
 )
 
+// Document represents a stored document with its content and embedding vector.
 type Document struct {
 	ID        string
 	Content   string
 	Embedding []float32
 }
 
+// RAGSystem provides retrieval-augmented generation backed by a llama embedding model and DuckDB.
 type RAGSystem struct {
 	db           *sql.DB
 	model        llama.Model
@@ -25,6 +27,7 @@ type RAGSystem struct {
 	embeddingDim int32
 }
 
+// NewRAGSystem creates a new RAGSystem by loading the llama model and opening the DuckDB database.
 func NewRAGSystem(modelPath, libPath, dbPath string) (*RAGSystem, error) {
 	if err := llama.Load(libPath); err != nil {
 		return nil, fmt.Errorf("unable to load llama library: %w", err)
@@ -83,6 +86,7 @@ func NewRAGSystem(modelPath, libPath, dbPath string) (*RAGSystem, error) {
 	return rag, nil
 }
 
+// initDB creates the documents table in DuckDB if it does not already exist.
 func (r *RAGSystem) initDB() error {
 	createTableSQL := fmt.Sprintf(`
 		CREATE TABLE IF NOT EXISTS documents (
@@ -99,6 +103,7 @@ func (r *RAGSystem) initDB() error {
 	return nil
 }
 
+// Close releases all resources held by the RAGSystem, including the database, context, and model.
 func (r *RAGSystem) Close() {
 	if r.db != nil {
 		r.db.Close()
@@ -112,6 +117,7 @@ func (r *RAGSystem) Close() {
 	llama.Close()
 }
 
+// GenerateEmbedding returns a normalized embedding vector for the given text using the loaded model.
 func (r *RAGSystem) GenerateEmbedding(text string) ([]float32, error) {
 	tokens := llama.Tokenize(r.vocab, text, true, true)
 
@@ -126,6 +132,7 @@ func (r *RAGSystem) GenerateEmbedding(text string) ([]float32, error) {
 	return normalizeVector(vec), nil
 }
 
+// normalizeVector returns a unit-length copy of vec using L2 normalization.
 func normalizeVector(vec []float32) []float32 {
 	var sum float64
 	for _, v := range vec {
@@ -143,6 +150,7 @@ func normalizeVector(vec []float32) []float32 {
 	return result
 }
 
+// AddDocument generates an embedding for content and stores the document in the database with the given id.
 func (r *RAGSystem) AddDocument(id, content string) error {
 	embedding, err := r.GenerateEmbedding(content)
 	if err != nil {
@@ -162,12 +170,14 @@ func (r *RAGSystem) AddDocument(id, content string) error {
 	return nil
 }
 
+// SearchResult holds a document returned by a similarity query along with its cosine similarity score.
 type SearchResult struct {
 	ID      string
 	Content string
 	Score   float64
 }
 
+// Query returns the topK documents most similar to queryText, ordered by descending cosine similarity.
 func (r *RAGSystem) Query(queryText string, topK int) ([]SearchResult, error) {
 	queryEmbedding, err := r.GenerateEmbedding(queryText)
 	if err != nil {
@@ -205,6 +215,7 @@ func (r *RAGSystem) Query(queryText string, topK int) ([]SearchResult, error) {
 	return results, nil
 }
 
+// ListDocuments returns all documents in the database ordered by id.
 func (r *RAGSystem) ListDocuments() ([]Document, error) {
 	rows, err := r.db.Query(`SELECT id, content FROM documents ORDER BY id`)
 	if err != nil {
@@ -224,6 +235,7 @@ func (r *RAGSystem) ListDocuments() ([]Document, error) {
 	return docs, nil
 }
 
+// DeleteDocument removes the document with the given id from the database.
 func (r *RAGSystem) DeleteDocument(id string) error {
 	result, err := r.db.Exec(`DELETE FROM documents WHERE id = ?`, id)
 	if err != nil {
@@ -237,6 +249,7 @@ func (r *RAGSystem) DeleteDocument(id string) error {
 	return nil
 }
 
+// floatArrayToSQL formats a float32 slice as a DuckDB array literal (e.g. "[1.0, 2.0]").
 func floatArrayToSQL(arr []float32) string {
 	var sb strings.Builder
 	sb.WriteString("[")
@@ -250,6 +263,7 @@ func floatArrayToSQL(arr []float32) string {
 	return sb.String()
 }
 
+// truncate returns s shortened to at most maxLen characters, appending "..." if truncated.
 func truncate(s string, maxLen int) string {
 	if len(s) <= maxLen {
 		return s

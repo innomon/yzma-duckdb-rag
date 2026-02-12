@@ -6,8 +6,8 @@ import (
 	"github.com/ledongthuc/pdf"
 )
 
-// Helper function to extract plain text from a PDF. Excerpted from
-// https://github.com/ledongthuc/pdf
+// ReadPDF extracts plain text from a PDF file at the given path.
+// It uses github.com/ledongthuc/pdf for parsing.
 func ReadPDF(path string) (string, error) {
 	f, r, err := pdf.Open(path)
 	if f != nil {

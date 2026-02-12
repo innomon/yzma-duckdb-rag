@@ -9,58 +9,70 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
+// AddDocumentArgs contains the parameters for adding a document to the knowledge base.
 type AddDocumentArgs struct {
 	ID      string `json:"id" jsonschema:"required,Unique document identifier"`
 	Content string `json:"content" jsonschema:"required,Document content text"`
 }
 
+// AddDocumentResult is the response returned after adding a document.
 type AddDocumentResult struct {
 	Success bool   `json:"success"`
 	Message string `json:"message"`
 }
 
+// QueryDocumentsArgs contains the parameters for querying documents by vector similarity.
 type QueryDocumentsArgs struct {
 	Query string `json:"query" jsonschema:"required,Search query text"`
 	TopK  int    `json:"top_k" jsonschema:"Maximum number of results to return (default: 5)"`
 }
 
+// QueryResult represents a single document match from a similarity search.
 type QueryResult struct {
 	ID      string  `json:"id"`
 	Content string  `json:"content"`
 	Score   float64 `json:"score"`
 }
 
+// QueryDocumentsResult is the response returned from a document query, containing matched results.
 type QueryDocumentsResult struct {
 	Results []QueryResult `json:"results"`
 	Count   int           `json:"count"`
 }
 
+// ListDocumentsArgs contains the parameters for listing documents (currently empty).
 type ListDocumentsArgs struct{}
 
+// DocumentItem represents a document entry with its ID and content.
 type DocumentItem struct {
 	ID      string `json:"id"`
 	Content string `json:"content"`
 }
 
+// ListDocumentsResult is the response returned when listing all documents in the knowledge base.
 type ListDocumentsResult struct {
 	Documents []DocumentItem `json:"documents"`
 	Total     int            `json:"total"`
 }
 
+// DeleteDocumentArgs contains the parameters for deleting a document from the knowledge base.
 type DeleteDocumentArgs struct {
 	ID string `json:"id" jsonschema:"required,Document identifier to delete"`
 }
 
+// DeleteDocumentResult is the response returned after deleting a document.
 type DeleteDocumentResult struct {
 	Success bool   `json:"success"`
 	Message string `json:"message"`
 }
 
+// MCPServer wraps a RAG system and exposes it as an MCP server with tool-based document operations.
 type MCPServer struct {
 	rag    *RAGSystem
 	server *mcp.Server
 }
 
+// NewMCPServer creates a new MCPServer that serves the given RAG system and registers all tools.
 func NewMCPServer(rag *RAGSystem) *MCPServer {
 	server := mcp.NewServer(&mcp.Implementation{
 		Name:    "ydrag",
@@ -77,6 +89,7 @@ func NewMCPServer(rag *RAGSystem) *MCPServer {
 	return m
 }
 
+// registerTools registers all MCP tools (add, query, list, delete) on the server.
 func (m *MCPServer) registerTools() {
 	mcp.AddTool(m.server, &mcp.Tool{
 		Name:        "add_document",
@@ -99,6 +112,7 @@ func (m *MCPServer) registerTools() {
 	}, m.deleteDocument)
 }
 
+// addDocument handles the add_document tool call, validating inputs and storing the document with its embedding.
 func (m *MCPServer) addDocument(ctx context.Context, req *mcp.CallToolRequest, args AddDocumentArgs) (*mcp.CallToolResult, AddDocumentResult, error) {
 	if args.ID == "" {
 		return &mcp.CallToolResult{
@@ -125,6 +139,7 @@ func (m *MCPServer) addDocument(ctx context.Context, req *mcp.CallToolRequest, a
 	}, AddDocumentResult{Success: true, Message: fmt.Sprintf("Document '%s' added successfully", args.ID)}, nil
 }
 
+// queryDocuments handles the query_documents tool call, performing vector similarity search and returning ranked results.
 func (m *MCPServer) queryDocuments(ctx context.Context, req *mcp.CallToolRequest, args QueryDocumentsArgs) (*mcp.CallToolResult, QueryDocumentsResult, error) {
 	if args.Query == "" {
 		return &mcp.CallToolResult{
@@ -171,6 +186,7 @@ func (m *MCPServer) queryDocuments(ctx context.Context, req *mcp.CallToolRequest
 	}, QueryDocumentsResult{Results: queryResults, Count: len(queryResults)}, nil
 }
 
+// listDocuments handles the list_documents tool call, returning all documents in the knowledge base.
 func (m *MCPServer) listDocuments(ctx context.Context, req *mcp.CallToolRequest, args ListDocumentsArgs) (*mcp.CallToolResult, ListDocumentsResult, error) {
 	docs, err := m.rag.ListDocuments()
 	if err != nil {
@@ -205,6 +221,7 @@ func (m *MCPServer) listDocuments(ctx context.Context, req *mcp.CallToolRequest,
 	}, ListDocumentsResult{Documents: items, Total: len(items)}, nil
 }
 
+// deleteDocument handles the delete_document tool call, removing a document by ID from the knowledge base.
 func (m *MCPServer) deleteDocument(ctx context.Context, req *mcp.CallToolRequest, args DeleteDocumentArgs) (*mcp.CallToolResult, DeleteDocumentResult, error) {
 	if args.ID == "" {
 		return &mcp.CallToolResult{
@@ -225,6 +242,7 @@ func (m *MCPServer) deleteDocument(ctx context.Context, req *mcp.CallToolRequest
 	}, DeleteDocumentResult{Success: true, Message: fmt.Sprintf("Document '%s' deleted successfully", args.ID)}, nil
 }
 
+// Run starts the MCP server using the specified transport ("stdio", "sse", or "streamable-http") and address.
 func (m *MCPServer) Run(ctx context.Context, transport, addr string) error {
 	switch transport {
 	case "stdio", "":
